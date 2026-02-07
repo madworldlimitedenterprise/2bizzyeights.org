@@ -1,0 +1,30 @@
+import time, jwt, requests, base64
+
+# Settings from your GitHub App
+APP_ID = "2807618"
+PRIVATE_KEY_PATH = "private-key.pem""
+REPO_OWNER = ""_2bizzyeightsorg-wq""
+REPO_NAME = "4-Real-Friends"
+
+# 1. Load the key from the OTHER file
+with open(PRIVATE_KEY_PATH, 'rb') as f:
+    private_key = f.read()
+
+# 2. Authenticate
+payload = {"iat": int(time.time()) - 60, "exp": int(time.time()) + 600, "iss": APP_ID}
+jwt_token = jwt.encode(payload, private_key, algorithm="RS256")
+headers = {"Authorization": f"Bearer {jwt_token}", "Accept": "application/vnd.github+json"}
+
+# 3. Get ID and Token
+inst_resp = requests.get("https://api.github.com/app/installations", headers=headers)
+install_id = inst_resp.json()[0]['id']
+token_url = f"https://api.github.com/app/installations/{install_id}/access_tokens"
+access_token = requests.post(token_url, headers=headers).json()['token']
+
+# 4. Create the file
+put_url = f"https://api.github.com/repos/{"_2bizzyeightsorg-wq"}/{4-Real-Friends}/contents/success.txt"
+data = {"message": "Final Test", "content": base64.b64encode(b"Success!").decode()}
+put_resp = requests.put(put_url, headers={"Authorization": f"token {access_token}"}, json=data)
+
+print(f"✅ Status Code: {put_resp.status_code}")
+  
